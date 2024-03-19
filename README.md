@@ -66,7 +66,8 @@ Levantar contenedores:
 ## Arquitectura Workspaces
 
 
-![alt text](image-1.png)
+![Screenshot from 2024-03-19 15-02-07](https://github.com/RafaelOrti/todo_nestjs_workspace/assets/45425367/a49afee4-9efc-4b5c-91c2-b5fbe7e82315)
+
 
 El proyecto se organiza en módulos claros y bien definidos para facilitar la navegación y el desarrollo:
 `
@@ -82,7 +83,8 @@ El proyecto se organiza en módulos claros y bien definidos para facilitar la na
 
 ## Arquitectura servicios nest (DDD, Hexagonal, CQRS)
 
-![alt text](image.png)
+
+![Screenshot from 2024-03-19 15-01-13](https://github.com/RafaelOrti/todo_nestjs_workspace/assets/45425367/99f5aed8-8d25-424d-bfe9-fe7015050b8c)
 
 El proyecto se organiza siguiendo DDD, Hexagonal, CQRS
 
