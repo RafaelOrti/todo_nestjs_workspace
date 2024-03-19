@@ -1,0 +1,116 @@
+version: "3.9"
+
+services:
+  mysql_task:
+    image: mysql:5.7
+    container_name: mysql_task
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: 'db_task'
+      MYSQL_USER: 'user_task'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3306:3306'
+    expose:
+      - '3306'
+    volumes:
+      - my-db-task:/var/lib/mysql
+      - ./mysql_task/init-db-task.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - backend
+
+  mysql_auth:
+    image: mysql:5.7
+    container_name: mysql_auth
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: 'db_auth'
+      MYSQL_USER: 'user_auth'
+      MYSQL_PASSWORD: 'password'
+      MYSQL_ROOT_PASSWORD: 'password'
+    ports:
+      - '3307:3306'
+    expose:
+      - '3306'
+    volumes:
+      - my-db-auth:/var/lib/mysql
+      - ./mysql_auth/init-db-auth.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:alpine
+    container_name: rabbitmq
+    ports:
+      - '5673:5672'
+    expose:
+      - '5672'
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: 'guest'
+      RABBITMQ_DEFAULT_PASS: 'guest'
+      RABBITMQ_DEFAULT_VHOST: '/'
+      RABBITMQ_DEFAULT_EXCHANGE_TYPE: 'topic'
+      RABBITMQ_DEFAULT_QUEUE: 'user_creation_queue'
+      RABBITMQ_EXCHANGE_NAME: 'user_events'
+    networks:
+      - backend
+    volumes:
+      - ./rabbitmq_data:/var/lib/rabbitmq
+
+  proxy:
+    container_name: proxy
+    build:
+      dockerfile: Dockerfile
+      context: ./proxy
+    ports:
+      - "80:80"
+    restart: unless-stopped
+    networks:
+      - backend
+
+  todo:
+    container_name: todo
+    build:
+      context: ./todo
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./:/app
+      - /app/todo/node_modules
+      - ./shared:/app/shared
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+      - mysql_task
+      - auth
+    networks:
+      - backend
+
+  auth:
+    container_name: auth
+    build:
+      context: ./auth
+      dockerfile: Dockerfile
+    ports:
+      - "4000:4000"
+    volumes:
+      - ./:/app
+      - /app/auth/node_modules
+      - ./shared:/app/shared
+    restart: unless-stopped
+    depends_on:
+      - rabbitmq
+      - mysql_auth
+    networks:
+      - backend
+
+networks:
+  backend:
+    driver: bridge
+
+volumes:
+  my-db-task:
+  my-db-auth:
